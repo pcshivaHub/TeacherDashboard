@@ -1,0 +1,76 @@
+{
+  "version": 5,
+  "savedAt": "2026-05-11T00:00:00.000Z",
+  "settings": {
+    "username": "",
+    "grades": ["Dept", "Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12", "All Grades"],
+    "subjects": ["Computer Science", "Robotics", "AI Programming", "Department", "Other"],
+    "boards": ["IGCSE", "IB MYP", "IB DP"],
+    "newsTopic": "tech-ai",
+    "newsKeywords": "",
+    "newsRefresh": 900,
+    "theme": "auto"
+  },
+  "tasks": [
+    {
+      "id": "seed_welcome",
+      "title": "Welcome! Tap a checkbox to complete a task",
+      "desc": "This dashboard saves to data/dashboard.json in this folder. Edit, delete, or replace these example tasks.",
+      "grade": "Dept",
+      "subject": "Department",
+      "priority": "Low",
+      "due": "",
+      "board": "",
+      "done": false,
+      "created": 0
+    },
+    {
+      "id": "seed_python",
+      "title": "Plan Grade 9 Python — Functions & Recursion",
+      "desc": "Prepare slides + 3 hands-on exercises. Reference IGCSE syllabus 0478 section 8.",
+      "grade": "Grade 9",
+      "subject": "Computer Science",
+      "priority": "High",
+      "due": "",
+      "board": "IGCSE",
+      "done": false,
+      "created": 0
+    },
+    {
+      "id": "seed_robotics",
+      "title": "Robotics club — order Arduino sensor kit",
+      "desc": "5 ultrasonic + 5 IR sensors for Grade 10 line-following bot project.",
+      "grade": "Grade 10",
+      "subject": "Robotics",
+      "priority": "Medium",
+      "due": "",
+      "board": "",
+      "done": false,
+      "created": 0
+    },
+    {
+      "id": "seed_ib",
+      "title": "Grade 12 IB DP — review IA proposals",
+      "desc": "4 students submitted; check criterion A & B. Deadline next Friday.",
+      "grade": "Grade 12",
+      "subject": "Computer Science",
+      "priority": "High",
+      "due": "",
+      "board": "IB DP",
+      "done": false,
+      "created": 0
+    },
+    {
+      "id": "seed_meeting",
+      "title": "Department meeting agenda",
+      "desc": "Draft for monthly tech dept review — budget, AI curriculum rollout, MakerSpace.",
+      "grade": "Dept",
+      "subject": "Department",
+      "priority": "Medium",
+      "due": "",
+      "board": "",
+      "done": false,
+      "created": 0
+    }
+  ]
+}

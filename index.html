@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Teacher Daily Dashboard</title>
+<style>
+  /* ========== THEME VARIABLES ========== */
+  :root[data-theme="light"], :root {
+    color-scheme: light;
+    --bg:#f3f4f9; --panel:#fff; --panel-2:#fafbff; --border:#e4e7ef;
+    --text:#1f2733; --muted:#6b7280; --strong:#111827;
+    --accent:#4f46e5; --accent-soft:#eef2ff;
+    --success:#16a34a; --success-soft:#dcfce7;
+    --warn:#d97706; --warn-soft:#fef3c7;
+    --danger:#dc2626; --danger-soft:#fee2e2;
+    --info:#0ea5e9; --info-soft:#e0f2fe;
+    --shadow:0 1px 2px rgba(15,23,42,0.04),0 4px 14px rgba(15,23,42,0.06);
+    --hero-from:#4f46e5; --hero-to:#7c3aed;
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg:#0b1020; --panel:#161b2e; --panel-2:#1c2238; --border:#2a3050;
+    --text:#e5e7eb; --muted:#9ca3af; --strong:#f8fafc;
+    --accent:#818cf8; --accent-soft:#312e81;
+    --success:#4ade80; --success-soft:#14532d;
+    --warn:#fbbf24; --warn-soft:#78350f;
+    --danger:#f87171; --danger-soft:#7f1d1d;
+    --info:#38bdf8; --info-soft:#0c4a6e;
+    --shadow:0 1px 2px rgba(0,0,0,0.4),0 4px 14px rgba(0,0,0,0.4);
+    --hero-from:#3730a3; --hero-to:#5b21b6;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; background:var(--bg); color:var(--text); font-size:14px; line-height:1.45; transition: background 0.2s, color 0.2s; }
+  .wrap { max-width:1400px; margin:0 auto; padding:18px; }
+  a { color: var(--accent); }
+
+  /* ========== HERO ========== */
+  .hero { background: linear-gradient(135deg, var(--hero-from) 0%, var(--hero-to) 100%); color:white; border-radius:14px; padding:24px 28px; margin-bottom:14px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
+  .hero::before { content:''; position:absolute; right:-40px; top:-40px; width:200px; height:200px; background: radial-gradient(circle, rgba(255,255,255,0.08), transparent 70%); pointer-events:none; }
+  .hero-top { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; }
+  .hero-left h1 { margin:0 0 4px 0; font-size:24px; font-weight:700; }
+  .welcome { font-size:14px; opacity:0.92; margin-bottom:18px; }
+  .clock-row { display:flex; align-items:baseline; gap:18px; flex-wrap:wrap; margin-top: 4px; }
+  .clock-time { font-size:46px; font-weight:800; letter-spacing:-1px; font-variant-numeric: tabular-nums; line-height:1; text-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+  .clock-secs { font-size:22px; opacity:0.7; font-weight:600; font-variant-numeric: tabular-nums; }
+  .clock-date { font-size:15px; font-weight:600; opacity:0.95; background: rgba(255,255,255,0.15); padding:6px 14px; border-radius: 999px; backdrop-filter: blur(4px); }
+  .hero-right { display:flex; flex-direction:column; align-items:flex-end; gap:8px; }
+  .hero-actions { display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+  .hero-btn { background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.25); color:white; padding:6px 12px; border-radius:8px; font-size:12px; cursor:pointer; font-family:inherit; font-weight:500; transition: background 0.15s; }
+  .hero-btn:hover { background:rgba(255,255,255,0.28); }
+  .hero-btn:disabled { opacity:0.5; cursor:not-allowed; }
+  .sync-pill { background:rgba(255,255,255,0.18); padding:5px 12px; border-radius:999px; font-size:12px; display:inline-flex; align-items:center; gap:6px; }
+  .sync-pill .dot { width:8px; height:8px; border-radius:50%; background:#cbd5e1; }
+  .sync-pill.synced .dot { background:#4ade80; }
+  .sync-pill.saving .dot { background:#fbbf24; animation:pulse 1.2s infinite; }
+  .sync-pill.error .dot { background:#f87171; }
+  .sync-pill.local .dot { background:#94a3b8; }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+
+  /* ========== STATS ========== */
+  .stats { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-bottom:16px; }
+  .stat { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:12px 14px; box-shadow:var(--shadow); }
+  .stat .label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.4px; font-weight:600; }
+  .stat .value { font-size:22px; font-weight:700; margin-top:2px; color: var(--strong); }
+  .stat.today .value { color:var(--accent); }
+  .stat.high .value { color:var(--danger); }
+  .stat.done .value { color:var(--success); }
+  .stat.overdue .value { color:var(--danger); }
+
+  /* ========== LAYOUT ========== */
+  .grid { display:grid; grid-template-columns: 340px 1fr 320px; gap:14px; }
+  @media (max-width:1180px) { .grid { grid-template-columns: 320px 1fr; } .news-col { grid-column: 1 / -1; } }
+  @media (max-width:780px) { .grid { grid-template-columns: 1fr; } .stats{grid-template-columns:repeat(2,1fr);} .clock-time{font-size:36px;} }
+
+  /* ========== PANELS ========== */
+  .panel { background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:16px; box-shadow:var(--shadow); margin-bottom:14px; }
+  .panel:last-child { margin-bottom:0; }
+  .panel h2 { font-size:14px; margin:0 0 12px 0; font-weight:700; display:flex; align-items:center; gap:8px; color:var(--strong); }
+  .panel h2 .dot { width:8px; height:8px; border-radius:50%; background:var(--accent); }
+
+  /* ========== FORM ========== */
+  .form-row { margin-bottom:10px; }
+  .form-row label { display:block; font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.3px; margin-bottom:4px; }
+  input, select, textarea, button { font-family: inherit; }
+  .form-row input, .form-row select, .form-row textarea { width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:8px; font-size:13px; background:var(--panel-2); color:var(--text); }
+  .form-row input:focus, .form-row select:focus, .form-row textarea:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+  .form-row textarea { resize:vertical; min-height:56px; }
+  .form-row.split { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .form-row.triple { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+  .btn { background:var(--accent); color:white; border:none; padding:9px 16px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; }
+  .btn:hover { filter: brightness(0.92); }
+  .btn.full { width:100%; }
+  .btn.ghost { background:transparent; color:var(--muted); border:1px solid var(--border); }
+  .btn.ghost:hover { background:var(--panel-2); color:var(--text); }
+  .btn.sm { padding:5px 11px; font-size:12px; }
+  .btn.danger { background: var(--danger); }
+
+  /* ========== FILTERS ========== */
+  .filter-group { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-bottom:8px; }
+  .filter-label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.3px; font-weight:600; margin-right:4px; min-width:56px; }
+  .chip { background:var(--panel-2); border:1px solid var(--border); color:var(--muted); padding:5px 11px; border-radius:999px; font-size:12px; font-weight:500; cursor:pointer; transition: all 0.12s; }
+  .chip:hover { border-color:var(--accent); color:var(--text); }
+  .chip.active { background:var(--accent); border-color:var(--accent); color:white; }
+
+  /* ========== TASKS ========== */
+  .task-list { display:flex; flex-direction:column; gap:8px; }
+  .task { display:grid; grid-template-columns:22px 1fr auto; gap:12px; padding:12px 14px; background:var(--panel-2); border:1px solid var(--border); border-left:4px solid var(--border); border-radius:10px; align-items:start; transition: all 0.15s; }
+  .task:hover { border-color:var(--accent); }
+  .task.priority-High { border-left-color:var(--danger); }
+  .task.priority-Medium { border-left-color:var(--warn); }
+  .task.priority-Low { border-left-color:#94a3b8; }
+  .task.done { opacity:0.55; }
+  .task.done .title { text-decoration:line-through; color:var(--muted); }
+  .task.overdue:not(.done) .due { color:var(--danger); font-weight:600; }
+  .check { width:20px; height:20px; border:2px solid var(--border); border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
+  .check:hover { border-color:var(--accent); }
+  .task.done .check { background:var(--success); border-color:var(--success); }
+  .task.done .check::after { content:'✓'; color:white; font-size:14px; font-weight:bold; }
+  .task .title { font-weight:600; font-size:13.5px; margin-bottom:3px; color: var(--strong); }
+  .task .desc { color:var(--muted); font-size:12.5px; margin-bottom:6px; white-space:pre-wrap; }
+  .task .meta { display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-size:11.5px; }
+  .tag { padding:2px 8px; border-radius:4px; font-weight:600; font-size:10.5px; text-transform:uppercase; letter-spacing:0.3px; }
+  .tag.grade { background:var(--accent-soft); color:var(--accent); }
+  .tag.priority-High { background:var(--danger-soft); color:var(--danger); }
+  .tag.priority-Medium { background:var(--warn-soft); color:var(--warn); }
+  .tag.priority-Low { background: var(--border); color:var(--muted); }
+  .tag.board { background: var(--info-soft); color: var(--info); }
+  .due { color:var(--muted); font-size:11.5px; }
+  .actions { display:flex; gap:4px; flex-shrink:0; }
+  .icon-btn { background:transparent; border:none; color:var(--muted); cursor:pointer; padding:4px 6px; border-radius:5px; font-size:13px; }
+  .icon-btn:hover { background:var(--panel-2); color:var(--text); }
+  .icon-btn.delete:hover { color:var(--danger); background:var(--danger-soft); }
+
+  .empty { text-align:center; padding:36px 16px; color:var(--muted); }
+  .empty .icon { font-size:36px; margin-bottom:8px; opacity:0.4; }
+  .empty .title { font-weight:600; margin-bottom:4px; }
+  .section-divider { font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin:14px 0 8px 0; padding-bottom:4px; border-bottom:1px dashed var(--border); display:flex; justify-content:space-between; }
+  .section-divider:first-child { margin-top:0; }
+  .count-badge { background:var(--panel-2); border:1px solid var(--border); color:var(--muted); padding:1px 8px; border-radius:999px; font-size:11px; font-weight:600; }
+  .help-text { font-size:11.5px; color:var(--muted); margin-top:8px; padding:8px 10px; background:var(--panel-2); border-radius:6px; border-left:3px solid var(--accent); }
+  .toolbar { display:flex; gap:8px; margin-bottom:12px; }
+  .search { flex:1; padding:7px 10px; border:1px solid var(--border); border-radius:8px; font-size:13px; background:var(--panel-2); color: var(--text); }
+  .search:focus { outline:none; border-color:var(--accent); }
+
+  /* ========== NEWS ========== */
+  .news-list { display:flex; flex-direction:column; gap:10px; max-height: 560px; overflow-y: auto; padding-right: 4px; }
+  .news-item { display:block; padding:10px 12px; background:var(--panel-2); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:8px; text-decoration:none; color:inherit; transition: all 0.12s; }
+  .news-item:hover { transform: translateX(2px); border-left-color: var(--info); background: var(--panel); }
+  .news-title { font-size:12.5px; font-weight:600; color:var(--strong); margin-bottom:4px; line-height:1.35; }
+  .news-meta { font-size:11px; color:var(--muted); display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .news-meta .dot-sep { opacity:0.5; }
+  .news-meta .pts { color: var(--accent); font-weight: 600; }
+  .news-controls { display:flex; gap:6px; align-items:center; margin-bottom: 10px; flex-wrap:wrap; }
+  .news-controls select { flex:1; min-width: 0; padding: 6px 8px; border:1px solid var(--border); border-radius:6px; font-size:12px; background:var(--panel-2); color:var(--text); }
+  .news-loading { color: var(--muted); font-size:12px; padding: 20px; text-align: center; }
+  .news-error { color: var(--danger); font-size:12px; padding: 12px; text-align: center; background: var(--danger-soft); border-radius: 6px; }
+  .updated-info { font-size:10.5px; color: var(--muted); text-align:right; margin-top: 6px; }
+
+  /* ========== MODAL / DRAWER ========== */
+  .overlay { position:fixed; inset:0; background:rgba(15,23,42,0.55); display:flex; align-items:center; justify-content:center; padding:20px; z-index:200; }
+  .overlay.hidden { display:none; }
+  .modal { background:var(--panel); color:var(--text); border-radius:14px; max-width:640px; width:100%; max-height: 88vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.3); border:1px solid var(--border); }
+  .modal-header { padding: 18px 24px 12px; border-bottom: 1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+  .modal-header h2 { margin:0; font-size:18px; color:var(--strong); }
+  .modal-close { background:transparent; border:none; font-size:20px; cursor:pointer; color: var(--muted); padding:4px 8px; }
+  .modal-close:hover { color: var(--text); }
+  .modal-body { padding: 18px 24px; }
+  .tabs { display:flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 16px; padding: 0 24px; }
+  .tab { padding: 8px 14px; cursor:pointer; font-size:13px; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px; font-weight:500; }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; padding: 0 24px 24px; }
+
+  .list-editor { background: var(--panel-2); border:1px solid var(--border); border-radius:8px; padding: 10px; }
+  .list-editor-items { display:flex; flex-wrap:wrap; gap:6px; margin-bottom: 8px; }
+  .list-pill { background: var(--accent-soft); color: var(--accent); padding: 4px 8px 4px 12px; border-radius:999px; font-size: 12px; display: inline-flex; align-items:center; gap: 6px; font-weight: 500; }
+  .list-pill button { background:transparent; border:none; color: var(--accent); cursor:pointer; font-size: 14px; padding: 0; opacity: 0.7; }
+  .list-pill button:hover { opacity: 1; }
+  .list-add { display: flex; gap: 6px; }
+  .list-add input { flex:1; padding: 6px 8px; border:1px solid var(--border); border-radius:6px; font-size:12.5px; background: var(--panel); color: var(--text); }
+  .settings-section { margin-bottom: 18px; }
+  .settings-section label.section-label { display:block; font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.3px; margin-bottom:6px; }
+  .settings-section .hint { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+  .radio-row { display:flex; gap: 8px; }
+  .radio-row label { display:flex; align-items:center; gap:6px; cursor:pointer; padding: 8px 12px; border:1px solid var(--border); border-radius:8px; font-size: 13px; flex:1; justify-content:center; }
+  .radio-row label.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight:600; }
+  .radio-row input { display: none; }
+  .info-box { background: var(--warn-soft); border:1px solid var(--warn); padding: 10px 12px; border-radius: 8px; font-size:12.5px; margin-top: 12px; color: var(--text); }
+  .ok-box { background: var(--success-soft); border:1px solid var(--success); padding: 10px 12px; border-radius: 8px; font-size:12.5px; margin-top: 8px; color: var(--text); }
+  code { background:var(--panel-2); border:1px solid var(--border); padding:1px 6px; border-radius:4px; font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size:12px; }
+</style>
+</head>
+<body>
+
+<!-- ========== SETTINGS MODAL ========== -->
+<div class="overlay hidden" id="settingsOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>⚙ Settings</h2>
+      <button class="modal-close" id="closeSettings">✕</button>
+    </div>
+    <div class="tabs">
+      <div class="tab active" data-tab="profile">Profile</div>
+      <div class="tab" data-tab="categories">Categories</div>
+      <div class="tab" data-tab="news">News</div>
+      <div class="tab" data-tab="theme">Theme</div>
+      <div class="tab" data-tab="sync">Drive Sync</div>
+    </div>
+
+    <!-- Profile -->
+    <div class="tab-content active" data-content="profile">
+      <div class="settings-section">
+        <label class="section-label">Your name</label>
+        <input type="text" id="set-username" placeholder="e.g. Mr. Shiva" />
+        <div class="hint">Shown in the welcome message at the top of the dashboard.</div>
+      </div>
+    </div>
+
+    <!-- Categories -->
+    <div class="tab-content" data-content="categories">
+      <div class="settings-section">
+        <label class="section-label">Grades / Departments</label>
+        <div class="list-editor" id="ed-grades"></div>
+        <div class="hint">Used in the activity form and filter chips.</div>
+      </div>
+      <div class="settings-section">
+        <label class="section-label">Subjects</label>
+        <div class="list-editor" id="ed-subjects"></div>
+        <div class="hint">e.g. Computer Science, Robotics, AI Programming, Math, Physics…</div>
+      </div>
+      <div class="settings-section">
+        <label class="section-label">Boards / Curricula</label>
+        <div class="list-editor" id="ed-boards"></div>
+        <div class="hint">e.g. IGCSE, IB MYP, IB DP, CBSE, AP, A-Levels…</div>
+      </div>
+    </div>
+
+    <!-- News -->
+    <div class="tab-content" data-content="news">
+      <div class="settings-section">
+        <label class="section-label">News topic</label>
+        <select id="set-news-topic">
+          <option value="tech-ai">Tech — AI &amp; Machine Learning</option>
+          <option value="tech-general">Tech — General (Top stories)</option>
+          <option value="programming">Programming &amp; Coding</option>
+          <option value="robotics">Robotics &amp; Hardware</option>
+          <option value="education">Education &amp; EdTech</option>
+          <option value="science">Science</option>
+          <option value="custom">Custom keywords…</option>
+        </select>
+      </div>
+      <div class="settings-section" id="customKeywordsWrap" style="display:none;">
+        <label class="section-label">Custom search keywords</label>
+        <input type="text" id="set-news-keywords" placeholder="e.g. python OR django, or generative AI" />
+        <div class="hint">Searches Hacker News stories matching your keywords.</div>
+      </div>
+      <div class="settings-section">
+        <label class="section-label">Auto-refresh</label>
+        <select id="set-news-refresh">
+          <option value="0">Off (manual only)</option>
+          <option value="300">Every 5 minutes</option>
+          <option value="900" selected>Every 15 minutes</option>
+          <option value="1800">Every 30 minutes</option>
+          <option value="3600">Every hour</option>
+        </select>
+      </div>
+      <div class="ok-box">News comes from Hacker News (no signup, no API key needed).</div>
+    </div>
+
+    <!-- Theme -->
+    <div class="tab-content" data-content="theme">
+      <div class="settings-section">
+        <label class="section-label">Appearance</label>
+        <div class="radio-row" id="themePicker">
+          <label data-val="light"><input type="radio" name="theme" value="light" /> ☀️ Light</label>
+          <label data-val="dark"><input type="radio" name="theme" value="dark" /> 🌙 Dark</label>
+          <label data-val="auto"><input type="radio" name="theme" value="auto" /> 🖥 System</label>
+        </div>
+        <div class="hint">"System" follows your OS dark/light setting automatically.</div>
+      </div>
+    </div>
+
+    <!-- Storage / Sync -->
+    <div class="tab-content" data-content="sync">
+      <div class="settings-section">
+        <label class="section-label">Storage mode</label>
+        <div class="radio-row" id="storagePicker">
+          <label data-val="local"><input type="radio" name="storage" value="local" /> 💾 Browser only</label>
+          <label data-val="folder"><input type="radio" name="storage" value="folder" /> 📁 Local folder</label>
+          <label data-val="drive"><input type="radio" name="storage" value="drive" /> ☁️ Google Drive</label>
+        </div>
+        <div class="hint">
+          <b>Browser only</b> — fastest, single device. <b>Local folder</b> — saves to <code>data/dashboard.json</code> in a folder you pick; portable, copy the folder anywhere. <b>Google Drive</b> — sync across devices via your Drive.
+        </div>
+      </div>
+
+      <div class="settings-section" id="folderSection" style="display:none;">
+        <label class="section-label">Local folder</label>
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <button class="btn ghost sm" id="pickFolderBtn">📁 Pick folder…</button>
+          <span id="folderInfo" style="font-size:12px; color:var(--muted);">No folder selected.</span>
+        </div>
+        <div class="hint">Pick the <code>teacher-dashboard</code> folder (or any folder that contains a <code>data</code> subfolder). The dashboard will read/write <code>data/dashboard.json</code> there.</div>
+        <div class="info-box" id="fsaWarning" style="display:none;">Your browser doesn't support the File System Access API. Use Chrome, Edge, or Brave — or stick with the "Browser only" or "Google Drive" modes.</div>
+      </div>
+
+      <div class="settings-section" id="driveSection" style="display:none;">
+        <label class="section-label">Google OAuth Client ID</label>
+        <input type="text" id="set-client-id" placeholder="123456789-...apps.googleusercontent.com" />
+        <div class="hint">For Drive sync. See README for the 10-minute setup. Authorized origin: <code id="originHint"></code></div>
+      </div>
+    </div>
+
+    <div style="padding: 12px 24px 18px; display:flex; gap:8px; justify-content:flex-end; border-top: 1px solid var(--border);">
+      <button class="btn ghost" id="cancelSettings">Cancel</button>
+      <button class="btn" id="saveSettings">Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== MAIN ========== -->
+<div class="wrap">
+
+  <div class="hero">
+    <div class="hero-top">
+      <div class="hero-left">
+        <h1>📚 Teacher Daily Dashboard</h1>
+        <div class="welcome" id="welcome">Welcome back.</div>
+        <div class="clock-row">
+          <div>
+            <span class="clock-time" id="clockTime">--:--</span><span class="clock-secs" id="clockSecs">:--</span>
+          </div>
+          <div class="clock-date" id="clockDate">—</div>
+        </div>
+      </div>
+      <div class="hero-right">
+        <div class="sync-pill local" id="syncPill"><span class="dot"></span><span id="syncText">Local only</span></div>
+        <div class="hero-actions">
+          <button class="hero-btn" id="btnThemeToggle" title="Toggle theme">🌙</button>
+          <button class="hero-btn" id="btnSignIn" style="display:none;">🔐 Sign in to Drive</button>
+          <button class="hero-btn" id="btnPull" style="display:none;">⬇ Pull</button>
+          <button class="hero-btn" id="btnPush" style="display:none;">☁ Sync</button>
+          <button class="hero-btn" id="btnSettings">⚙ Settings</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat today"><div class="label">Today</div><div class="value" id="statToday">0</div></div>
+    <div class="stat high"><div class="label">High Priority</div><div class="value" id="statHigh">0</div></div>
+    <div class="stat overdue"><div class="label">Overdue</div><div class="value" id="statOverdue">0</div></div>
+    <div class="stat done"><div class="label">Done Today</div><div class="value" id="statDone">0</div></div>
+    <div class="stat total"><div class="label">Open Tasks</div><div class="value" id="statTotal">0</div></div>
+  </div>
+
+  <div class="grid">
+    <!-- LEFT -->
+    <div>
+      <div class="panel">
+        <h2><span class="dot"></span> Add New Activity</h2>
+        <form id="taskForm">
+          <div class="form-row"><label>Title *</label><input type="text" id="f-title" required placeholder="e.g. Prepare Python lesson on loops" /></div>
+          <div class="form-row"><label>Notes</label><textarea id="f-desc" placeholder="Resources, links, materials..."></textarea></div>
+          <div class="form-row triple">
+            <div><label>Grade / Dept</label><select id="f-grade"></select></div>
+            <div><label>Subject</label><select id="f-subject"></select></div>
+            <div><label>Priority</label><select id="f-priority"><option value="High">High</option><option value="Medium" selected>Medium</option><option value="Low">Low</option></select></div>
+          </div>
+          <div class="form-row split">
+            <div><label>Due Date</label><input type="date" id="f-due" /></div>
+            <div><label>Board / Curriculum</label><select id="f-board"></select></div>
+          </div>
+          <button class="btn full" type="submit" id="submitBtn">Add Activity</button>
+          <button class="btn full ghost" type="button" id="cancelEdit" style="display:none;margin-top:6px;">Cancel Edit</button>
+        </form>
+        <div class="help-text" id="helpText">Tasks save to your browser. Open Settings → Drive Sync to enable cross-device sync.</div>
+      </div>
+
+      <div class="panel">
+        <h2><span class="dot" style="background:var(--warn);"></span> Backup</h2>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <button class="btn ghost sm" id="exportBtn">⬇ Export tasks (JSON)</button>
+          <button class="btn ghost sm" id="importBtn">⬆ Import tasks (JSON)</button>
+          <input type="file" id="importFile" accept="application/json" style="display:none;" />
+          <button class="btn ghost sm" id="signOutBtn" style="display:none;">🚪 Sign out of Drive</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MIDDLE -->
+    <div>
+      <div class="panel">
+        <h2><span class="dot"></span> My Activities</h2>
+        <div class="toolbar"><input type="text" class="search" id="searchBox" placeholder="🔍 Search activities..." /></div>
+        <div class="filter-group" id="viewFilters">
+          <span class="filter-label">View</span>
+          <span class="chip active" data-filter="view" data-value="today">Today</span>
+          <span class="chip" data-filter="view" data-value="upcoming">Upcoming</span>
+          <span class="chip" data-filter="view" data-value="overdue">Overdue</span>
+          <span class="chip" data-filter="view" data-value="all">All Open</span>
+          <span class="chip" data-filter="view" data-value="completed">Completed</span>
+        </div>
+        <div class="filter-group" id="gradeFilters"></div>
+        <div class="filter-group" id="subjectFilters"></div>
+        <div id="taskListContainer" class="task-list"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: NEWS -->
+    <div class="news-col">
+      <div class="panel">
+        <h2><span class="dot" style="background:var(--info);"></span> 📰 News Corner</h2>
+        <div class="news-controls">
+          <select id="newsTopicQuick">
+            <option value="tech-ai">Tech — AI &amp; ML</option>
+            <option value="tech-general">Tech — General</option>
+            <option value="programming">Programming</option>
+            <option value="robotics">Robotics</option>
+            <option value="education">Education</option>
+            <option value="science">Science</option>
+          </select>
+          <button class="btn ghost sm" id="newsRefreshBtn" title="Refresh">↻</button>
+        </div>
+        <div id="newsList" class="news-list">
+          <div class="news-loading">Loading…</div>
+        </div>
+        <div class="updated-info" id="newsUpdated"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+/* ===========================================================================
+   STATE
+   =========================================================================== */
+const STORAGE_KEY = 'td_tasks_v4';
+const FILTER_KEY  = 'td_filters_v4';
+const SETTINGS_KEY = 'td_settings_v4';
+const TOKEN_KEY = 'td_oauth_token_v4';
+const FOLDER_ID_KEY = 'td_folder_id_v4';
+const FOLDER_NAME = 'Teacher Dashboard';
+const FILE_PREFIX = 'tasks-';
+const SCOPE = 'https://www.googleapis.com/auth/drive.file';
+const DRIVE_API = 'https://www.googleapis.com/drive/v3';
+const DRIVE_UPLOAD = 'https://www.googleapis.com/upload/drive/v3';
+
+const DEFAULT_SETTINGS = {
+  username: '',
+  grades: ['Dept', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12', 'All Grades'],
+  subjects: ['Computer Science', 'Robotics', 'AI Programming', 'Department', 'Other'],
+  boards: ['IGCSE', 'IB MYP', 'IB DP'],
+  newsTopic: 'tech-ai',
+  newsKeywords: '',
+  newsRefresh: 900,
+  theme: 'auto',
+  clientId: '',
+  storageMode: 'local', // 'local' | 'folder' | 'drive'
+};
+
+let folderHandle = null;       // FileSystemDirectoryHandle if storageMode==='folder'
+const DASHBOARD_FILE = 'dashboard.json';
+const DATA_SUBFOLDER = 'data';
+
+let tasks = [];
+let filters = { view:'today', grade:'all', subject:'all', search:'' };
+let settings = { ...DEFAULT_SETTINGS };
+let editingId = null;
+let saveTimer = null;
+let tokenClient = null;
+let accessToken = null;
+let tokenExpiry = 0;
+let folderId = null;
+let lastSyncedAt = null;
+let signedIn = false;
+let newsTimer = null;
+
+const $ = id => document.getElementById(id);
+const todayStr = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+const fmtFullDate = d => new Date(d).toLocaleDateString(undefined,{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+const uid = () => 't_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
+const escapeHtml = s => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+function relTime(iso) {
+  if (!iso) return '';
+  const diff = Math.round((Date.now() - new Date(iso).getTime())/1000);
+  if (diff < 5) return 'just now';
+  if (diff < 60) return `${diff}s ago`;
+  if (diff < 3600) return `${Math.round(diff/60)}m ago`;
+  if (diff < 86400) return `${Math.round(diff/3600)}h ago`;
+  if (diff < 604800) return `${Math.round(diff/86400)}d ago`;
+  return new Date(iso).toLocaleDateString();
+}
+
+/* ===========================================================================
+   INDEXEDDB (for persisting folder handle across reloads)
+   =========================================================================== */
+function openIDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open('teacher-dashboard-fs', 1);
+    req.onupgradeneeded = () => req.result.createObjectStore('handles');
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function idbSet(key, val) {
+  const db = await openIDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('handles', 'readwrite');
+    tx.objectStore('handles').put(val, key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+async function idbGet(key) {
+  const db = await openIDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('handles', 'readonly');
+    const req = tx.objectStore('handles').get(key);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function idbDelete(key) {
+  const db = await openIDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('handles', 'readwrite');
+    tx.objectStore('handles').delete(key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+/* ===========================================================================
+   FILE SYSTEM ACCESS API (for the "Local folder" storage mode)
+   =========================================================================== */
+const fsaSupported = () => 'showDirectoryPicker' in window;
+
+async function pickFolder() {
+  if (!fsaSupported()) throw new Error('File System Access API not supported in this browser.');
+  const handle = await window.showDirectoryPicker({ mode: 'readwrite' });
+  await idbSet('folder', handle);
+  return handle;
+}
+
+async function ensureFolderPermission(handle) {
+  if (!handle) return false;
+  const opts = { mode: 'readwrite' };
+  if ((await handle.queryPermission(opts)) === 'granted') return true;
+  return (await handle.requestPermission(opts)) === 'granted';
+}
+
+async function getDataSubFolder(handle) {
+  // Try existing data/, else create
+  try {
+    return await handle.getDirectoryHandle(DATA_SUBFOLDER, { create: true });
+  } catch (e) {
+    throw new Error('Could not access "data" subfolder: ' + e.message);
+  }
+}
+
+async function readDashboardFile() {
+  if (!folderHandle) return null;
+  if (!(await ensureFolderPermission(folderHandle))) throw new Error('Permission denied');
+  const dataDir = await getDataSubFolder(folderHandle);
+  try {
+    const fh = await dataDir.getFileHandle(DASHBOARD_FILE);
+    const file = await fh.getFile();
+    const text = await file.text();
+    return JSON.parse(text);
+  } catch (e) {
+    if (e.name === 'NotFoundError') return null;
+    throw e;
+  }
+}
+
+async function writeDashboardFile(payload) {
+  if (!folderHandle) throw new Error('No folder selected');
+  if (!(await ensureFolderPermission(folderHandle))) throw new Error('Permission denied');
+  const dataDir = await getDataSubFolder(folderHandle);
+  const fh = await dataDir.getFileHandle(DASHBOARD_FILE, { create: true });
+  const w = await fh.createWritable();
+  await w.write(JSON.stringify(payload, null, 2));
+  await w.close();
+}
+
+async function saveToFolder() {
+  setSync('saving', 'Saving to folder…');
+  try {
+    const payload = { version: 5, savedAt: new Date().toISOString(), tasks, settings };
+    await writeDashboardFile(payload);
+    lastSyncedAt = payload.savedAt;
+    setSync('synced', `Saved ${relTime(lastSyncedAt)}`);
+  } catch (err) {
+    console.error(err);
+    setSync('error', 'Folder save failed: ' + err.message);
+  }
+}
+
+async function loadFromFolder() {
+  try {
+    const data = await readDashboardFile();
+    if (data && data.tasks) {
+      tasks = data.tasks;
+      if (data.settings) settings = { ...DEFAULT_SETTINGS, ...settings, ...data.settings, storageMode: 'folder' };
+      lastSyncedAt = data.savedAt;
+      saveCache();
+      saveSettings();
+    }
+    return data;
+  } catch (err) {
+    console.error(err); return null;
+  }
+}
+
+/* ===========================================================================
+   SETTINGS PERSISTENCE
+   =========================================================================== */
+function loadSettings() {
+  try {
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    if (raw) settings = { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
+  } catch(e) {}
+}
+function saveSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); }
+
+/* ===========================================================================
+   THEME
+   =========================================================================== */
+function applyTheme() {
+  let t = settings.theme;
+  if (t === 'auto') t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+  $('btnThemeToggle').textContent = t === 'dark' ? '☀️' : '🌙';
+  $('btnThemeToggle').title = `Switch to ${t === 'dark' ? 'light' : 'dark'} mode`;
+}
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => {
+  if (settings.theme === 'auto') applyTheme();
+});
+
+/* ===========================================================================
+   WELCOME + CLOCK
+   =========================================================================== */
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 5) return 'Working late';
+  if (h < 12) return 'Good morning';
+  if (h < 17) return 'Good afternoon';
+  if (h < 21) return 'Good evening';
+  return 'Good night';
+}
+function updateWelcome() {
+  const name = settings.username || 'there';
+  $('welcome').textContent = `${greeting()}, ${name} — let's make today count.`;
+}
+function tickClock() {
+  const d = new Date();
+  const hh = String(d.getHours()).padStart(2,'0');
+  const mm = String(d.getMinutes()).padStart(2,'0');
+  const ss = String(d.getSeconds()).padStart(2,'0');
+  $('clockTime').textContent = `${hh}:${mm}`;
+  $('clockSecs').textContent = `:${ss}`;
+  $('clockDate').textContent = fmtFullDate(d);
+}
+
+/* ===========================================================================
+   DYNAMIC FORM POPULATION
+   =========================================================================== */
+function populateSelect(el, items) {
+  el.innerHTML = '';
+  items.forEach(v => {
+    const o = document.createElement('option');
+    o.value = v; o.textContent = v;
+    el.appendChild(o);
+  });
+}
+function populateFormSelects() {
+  populateSelect($('f-grade'), settings.grades);
+  populateSelect($('f-subject'), settings.subjects);
+  const boardSel = $('f-board');
+  boardSel.innerHTML = '<option value="">—</option>';
+  settings.boards.forEach(v => {
+    const o = document.createElement('option');
+    o.value = v; o.textContent = v;
+    boardSel.appendChild(o);
+  });
+}
+function renderGradeFilters() {
+  const c = $('gradeFilters');
+  c.innerHTML = '<span class="filter-label">Grade</span><span class="chip active" data-filter="grade" data-value="all">All</span>';
+  settings.grades.forEach(g => {
+    const span = document.createElement('span');
+    span.className = 'chip';
+    span.dataset.filter = 'grade';
+    span.dataset.value = g;
+    span.textContent = g.replace('Grade ','');
+    c.appendChild(span);
+  });
+}
+function renderSubjectFilters() {
+  const c = $('subjectFilters');
+  c.innerHTML = '<span class="filter-label">Subject</span><span class="chip active" data-filter="subject" data-value="all">All</span>';
+  settings.subjects.forEach(s => {
+    const span = document.createElement('span');
+    span.className = 'chip';
+    span.dataset.filter = 'subject';
+    span.dataset.value = s;
+    span.textContent = s;
+    c.appendChild(span);
+  });
+}
+
+/* ===========================================================================
+   SUBJECT COLOR HASHING (consistent palette)
+   =========================================================================== */
+const SUBJ_PALETTE = [
+  { bg: '#dbeafe', fg: '#1d4ed8', bgD:'#1e3a8a', fgD:'#bfdbfe' },
+  { bg: '#fce7f3', fg: '#be185d', bgD:'#831843', fgD:'#fbcfe8' },
+  { bg: '#ede9fe', fg: '#6d28d9', bgD:'#4c1d95', fgD:'#ddd6fe' },
+  { bg: '#dcfce7', fg: '#15803d', bgD:'#14532d', fgD:'#bbf7d0' },
+  { bg: '#fef3c7', fg: '#a16207', bgD:'#713f12', fgD:'#fde68a' },
+  { bg: '#fee2e2', fg: '#b91c1c', bgD:'#7f1d1d', fgD:'#fecaca' },
+  { bg: '#e0f2fe', fg: '#0369a1', bgD:'#0c4a6e', fgD:'#bae6fd' },
+  { bg: '#f1f5f9', fg: '#475569', bgD:'#1e293b', fgD:'#cbd5e1' },
+];
+function subjectColor(name) {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = ((h<<5) - h) + name.charCodeAt(i) | 0;
+  return SUBJ_PALETTE[Math.abs(h) % SUBJ_PALETTE.length];
+}
+function subjStyle(name) {
+  const c = subjectColor(name);
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  return `background:${isDark?c.bgD:c.bg};color:${isDark?c.fgD:c.fg};`;
+}
+
+/* ===========================================================================
+   RENDER
+   =========================================================================== */
+const isOverdue = (d, done) => !done && d && d < todayStr();
+const isUpcoming = d => d && d > todayStr();
+
+function render() {
+  renderStats(); renderList(); renderFilters();
+}
+function renderStats() {
+  const t = todayStr();
+  let today=0, high=0, over=0, doneT=0, total=0;
+  tasks.forEach(x => {
+    if (!x.done) { total++; if (x.due===t) today++; if (x.priority==='High') high++; if (isOverdue(x.due,x.done)) over++; }
+    else if (x.completedAt && x.completedAt.slice(0,10)===t) doneT++;
+  });
+  $('statToday').textContent = today; $('statHigh').textContent = high;
+  $('statOverdue').textContent = over; $('statDone').textContent = doneT; $('statTotal').textContent = total;
+}
+function renderFilters() {
+  document.querySelectorAll('.chip[data-filter]').forEach(c => c.classList.toggle('active', filters[c.dataset.filter]===c.dataset.value));
+}
+function filterTasks() {
+  return tasks.filter(t => {
+    if (filters.view==='today' && (t.done || t.due!==todayStr())) return false;
+    if (filters.view==='upcoming' && (t.done || !isUpcoming(t.due))) return false;
+    if (filters.view==='overdue' && (t.done || !isOverdue(t.due,t.done))) return false;
+    if (filters.view==='all' && t.done) return false;
+    if (filters.view==='completed' && !t.done) return false;
+    if (filters.grade!=='all' && t.grade!==filters.grade) return false;
+    if (filters.subject!=='all' && t.subject!==filters.subject) return false;
+    if (filters.search) {
+      const q = filters.search.toLowerCase();
+      if (!(t.title.toLowerCase().includes(q) || (t.desc||'').toLowerCase().includes(q))) return false;
+    }
+    return true;
+  });
+}
+function sortTasks(list) {
+  const p = { High:0, Medium:1, Low:2 };
+  return list.slice().sort((a,b) => {
+    if (a.done!==b.done) return a.done?1:-1;
+    const ao=isOverdue(a.due,a.done)?0:1, bo=isOverdue(b.due,b.done)?0:1;
+    if (ao!==bo) return ao-bo;
+    if (p[a.priority]!==p[b.priority]) return p[a.priority]-p[b.priority];
+    const ad=a.due||'9999-12-31', bd=b.due||'9999-12-31';
+    if (ad!==bd) return ad<bd?-1:1;
+    return b.created-a.created;
+  });
+}
+function groupTasks(list) {
+  if (filters.view!=='all' && filters.view!=='completed') return null;
+  const g = {};
+  list.forEach(t => {
+    let k;
+    if (t.done) k='Completed';
+    else if (isOverdue(t.due,t.done)) k='Overdue';
+    else if (t.due===todayStr()) k='Today';
+    else if (isUpcoming(t.due)) k='Upcoming';
+    else k='No due date';
+    (g[k]=g[k]||[]).push(t);
+  });
+  return g;
+}
+function renderList() {
+  const list = sortTasks(filterTasks());
+  const c = $('taskListContainer'); c.innerHTML = '';
+  if (list.length===0) {
+    const e = document.createElement('div'); e.className='empty';
+    e.innerHTML = '<div class="icon">✨</div><div class="title">Nothing here</div><div class="sub">Try a different filter or add a new activity.</div>';
+    c.appendChild(e); return;
+  }
+  const g = groupTasks(list);
+  if (g) {
+    ['Overdue','Today','Upcoming','No due date','Completed'].forEach(k => {
+      if (!g[k]||g[k].length===0) return;
+      const h=document.createElement('div'); h.className='section-divider';
+      h.innerHTML=`<span>${k}</span><span class="count-badge">${g[k].length}</span>`;
+      c.appendChild(h);
+      g[k].forEach(t => c.appendChild(renderTask(t)));
+    });
+  } else list.forEach(t => c.appendChild(renderTask(t)));
+}
+function renderTask(t) {
+  const el = document.createElement('div');
+  el.className = `task priority-${t.priority}`+(t.done?' done':'')+(isOverdue(t.due,t.done)?' overdue':'');
+  const dueText = t.due ? (isOverdue(t.due,t.done) ? `⚠ Overdue · ${t.due}` : (t.due===todayStr() ? `📌 Today` : `📅 ${t.due}`)) : '';
+  const subj = t.subject || 'Other';
+  el.innerHTML = `
+    <div class="check" data-action="toggle" data-id="${t.id}"></div>
+    <div>
+      <div class="title"></div>
+      ${t.desc ? '<div class="desc"></div>' : ''}
+      <div class="meta">
+        <span class="tag grade"></span>
+        <span class="tag subject-tag" style="${subjStyle(subj)}"></span>
+        <span class="tag priority-${t.priority}"></span>
+        ${t.board ? '<span class="tag board"></span>' : ''}
+        ${dueText ? `<span class="due">${dueText}</span>` : ''}
+      </div>
+    </div>
+    <div class="actions">
+      <button class="icon-btn" data-action="edit" data-id="${t.id}" title="Edit">✏️</button>
+      <button class="icon-btn delete" data-action="delete" data-id="${t.id}" title="Delete">🗑</button>
+    </div>`;
+  el.querySelector('.title').textContent = t.title;
+  if (t.desc) el.querySelector('.desc').textContent = t.desc;
+  el.querySelector('.tag.grade').textContent = t.grade;
+  el.querySelector('.subject-tag').textContent = subj;
+  el.querySelector('.tag.priority-'+t.priority).textContent = t.priority;
+  if (t.board) el.querySelector('.tag.board').textContent = t.board;
+  return el;
+}
+
+/* ===========================================================================
+   MUTATIONS
+   =========================================================================== */
+function commit() { saveCache(); render(); scheduleSave(); }
+function addOrUpdate(e) {
+  e.preventDefault();
+  const data = {
+    title: $('f-title').value.trim(),
+    desc: $('f-desc').value.trim(),
+    grade: $('f-grade').value,
+    subject: $('f-subject').value,
+    priority: $('f-priority').value,
+    due: $('f-due').value || '',
+    board: $('f-board').value,
+  };
+  if (!data.title) return;
+  if (editingId) {
+    const i = tasks.findIndex(t => t.id===editingId);
+    if (i>=0) tasks[i] = { ...tasks[i], ...data };
+    editingId = null;
+    $('submitBtn').textContent='Add Activity'; $('cancelEdit').style.display='none';
+  } else {
+    tasks.push({ id:uid(), ...data, done:false, created:Date.now() });
+  }
+  $('taskForm').reset(); $('f-priority').value='Medium'; $('f-due').value=todayStr();
+  commit();
+}
+function toggleDone(id) {
+  const t = tasks.find(x => x.id===id); if (!t) return;
+  t.done = !t.done; t.completedAt = t.done ? new Date().toISOString() : null;
+  commit();
+}
+function deleteTask(id) {
+  if (!confirm('Delete this activity?')) return;
+  tasks = tasks.filter(t => t.id!==id);
+  commit();
+}
+function editTask(id) {
+  const t = tasks.find(x => x.id===id); if (!t) return;
+  editingId = id;
+  $('f-title').value=t.title; $('f-desc').value=t.desc||''; $('f-grade').value=t.grade;
+  $('f-subject').value=t.subject; $('f-priority').value=t.priority; $('f-due').value=t.due||''; $('f-board').value=t.board||'';
+  $('submitBtn').textContent='Update Activity'; $('cancelEdit').style.display='block';
+  $('f-title').focus(); window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ===========================================================================
+   LOCAL CACHE
+   =========================================================================== */
+function saveCache() { localStorage.setItem(STORAGE_KEY, JSON.stringify({ tasks, lastSyncedAt })); }
+function loadCache() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)||'null'); } catch(e){ return null; } }
+function saveFilters() { localStorage.setItem(FILTER_KEY, JSON.stringify(filters)); }
+function loadFilters() { try { filters = { ...filters, ...JSON.parse(localStorage.getItem(FILTER_KEY)||'{}') }; } catch(e){} }
+
+function seedTasks() {
+  const t = todayStr();
+  const tom = new Date(); tom.setDate(tom.getDate()+1);
+  const tStr = tom.getFullYear()+'-'+String(tom.getMonth()+1).padStart(2,'0')+'-'+String(tom.getDate()).padStart(2,'0');
+  return [
+    { id:uid(), title:'Welcome! Tap a checkbox to complete a task', desc:'These are example tasks. Edit, delete, or replace.', grade:'Dept', subject:'Department', priority:'Low', due:t, board:'', done:false, created:Date.now() },
+    { id:uid(), title:'Plan Grade 9 Python — Functions & Recursion', desc:'Slides + 3 hands-on exercises. IGCSE 0478 §8.', grade:'Grade 9', subject:'Computer Science', priority:'High', due:t, board:'IGCSE', done:false, created:Date.now() },
+    { id:uid(), title:'Robotics club — order Arduino sensor kit', desc:'5 ultrasonic + 5 IR sensors for line-following bots.', grade:'Grade 10', subject:'Robotics', priority:'Medium', due:tStr, board:'', done:false, created:Date.now() },
+    { id:uid(), title:'Grade 12 IB DP — review IA proposals', desc:'4 students; check criterion A & B.', grade:'Grade 12', subject:'Computer Science', priority:'High', due:tStr, board:'IB DP', done:false, created:Date.now() },
+    { id:uid(), title:'Department meeting agenda', desc:'Budget, AI curriculum, MakerSpace.', grade:'Dept', subject:'Department', priority:'Medium', due:t, board:'', done:false, created:Date.now() },
+  ];
+}
+
+/* ===========================================================================
+   NEWS
+   =========================================================================== */
+const NEWS_QUERIES = {
+  'tech-ai': '"artificial intelligence" OR "machine learning" OR "GPT" OR "LLM" OR "neural network"',
+  'tech-general': '',  // empty = use front page
+  'programming': '"programming" OR "javascript" OR "python" OR "rust" OR "developer"',
+  'robotics': '"robotics" OR "arduino" OR "raspberry pi" OR "robots" OR "embedded"',
+  'education': '"education" OR "edtech" OR "teaching" OR "classroom" OR "students"',
+  'science': '"science" OR "physics" OR "biology" OR "research" OR "study"',
+};
+
+async function fetchNews() {
+  const list = $('newsList');
+  list.innerHTML = '<div class="news-loading">Loading news…</div>';
+  try {
+    const topic = settings.newsTopic;
+    let query = NEWS_QUERIES[topic];
+    if (topic === 'custom') query = settings.newsKeywords;
+    let url;
+    if (!query) {
+      // Top stories (front page) - use search by date with high points
+      url = `https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=10`;
+    } else {
+      url = `https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(query)}&tags=story&hitsPerPage=10&numericFilters=points>30`;
+    }
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HN ${res.status}`);
+    const data = await res.json();
+    if (!data.hits || data.hits.length === 0) {
+      list.innerHTML = '<div class="news-loading">No stories found. Try a different topic.</div>';
+      return;
+    }
+    list.innerHTML = '';
+    data.hits.slice(0, 10).forEach(h => {
+      const link = h.url || `https://news.ycombinator.com/item?id=${h.objectID}`;
+      const a = document.createElement('a');
+      a.className = 'news-item'; a.href = link; a.target = '_blank'; a.rel = 'noopener';
+      const host = h.url ? new URL(h.url).hostname.replace('www.','') : 'news.ycombinator.com';
+      a.innerHTML = `
+        <div class="news-title">${escapeHtml(h.title || '')}</div>
+        <div class="news-meta">
+          <span>${escapeHtml(host)}</span>
+          <span class="dot-sep">·</span>
+          <span class="pts">▲ ${h.points || 0}</span>
+          <span class="dot-sep">·</span>
+          <span>${relTime(h.created_at)}</span>
+        </div>`;
+      list.appendChild(a);
+    });
+    $('newsUpdated').textContent = `Updated ${new Date().toLocaleTimeString()}`;
+  } catch (err) {
+    list.innerHTML = `<div class="news-error">Could not load news: ${escapeHtml(err.message)}</div>`;
+  }
+}
+function scheduleNewsRefresh() {
+  clearInterval(newsTimer);
+  if (settings.newsRefresh > 0) {
+    newsTimer = setInterval(fetchNews, settings.newsRefresh * 1000);
+  }
+}
+
+/* ===========================================================================
+   SETTINGS MODAL
+   =========================================================================== */
+function renderListEditor(containerId, items, settingsKey) {
+  const c = $(containerId);
+  c.innerHTML = '';
+  const itemsWrap = document.createElement('div');
+  itemsWrap.className = 'list-editor-items';
+  items.forEach((it, idx) => {
+    const pill = document.createElement('span');
+    pill.className = 'list-pill';
+    pill.innerHTML = `${escapeHtml(it)} <button data-idx="${idx}" data-action="remove" title="Remove">×</button>`;
+    itemsWrap.appendChild(pill);
+  });
+  c.appendChild(itemsWrap);
+  const add = document.createElement('div');
+  add.className = 'list-add';
+  add.innerHTML = `<input type="text" placeholder="Add new..." /><button class="btn sm" data-action="add">Add</button>`;
+  c.appendChild(add);
+
+  c.querySelector('input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); c.querySelector('[data-action="add"]').click(); }
+  });
+  c.addEventListener('click', e => {
+    const t = e.target.closest('[data-action]');
+    if (!t) return;
+    const k = settingsKey;
+    if (t.dataset.action === 'remove') {
+      const idx = +t.dataset.idx;
+      const arr = (settings._tempEditor[k] || items).slice();
+      arr.splice(idx, 1);
+      settings._tempEditor[k] = arr;
+      renderListEditor(containerId, arr, k);
+    } else if (t.dataset.action === 'add') {
+      const inp = c.querySelector('input');
+      const v = inp.value.trim();
+      if (!v) return;
+      const arr = (settings._tempEditor[k] || items).slice();
+      if (!arr.includes(v)) arr.push(v);
+      settings._tempEditor[k] = arr;
+      renderListEditor(containerId, arr, k);
+      inp.value = ''; inp.focus();
+    }
+  }, { once: false });
+}
+
+function openSettings() {
+  settings._tempEditor = {
+    grades: settings.grades.slice(),
+    subjects: settings.subjects.slice(),
+    boards: settings.boards.slice(),
+  };
+  $('set-username').value = settings.username || '';
+  renderListEditor('ed-grades', settings.grades, 'grades');
+  renderListEditor('ed-subjects', settings.subjects, 'subjects');
+  renderListEditor('ed-boards', settings.boards, 'boards');
+  $('set-news-topic').value = settings.newsTopic;
+  $('set-news-keywords').value = settings.newsKeywords || '';
+  $('customKeywordsWrap').style.display = settings.newsTopic === 'custom' ? 'block' : 'none';
+  $('set-news-refresh').value = String(settings.newsRefresh);
+  $('set-client-id').value = settings.clientId || '';
+  $('originHint').textContent = window.location.origin;
+  document.querySelectorAll('[name="theme"]').forEach(r => {
+    r.checked = (r.value === settings.theme);
+    r.parentElement.classList.toggle('active', r.checked);
+  });
+  // Storage mode
+  document.querySelectorAll('[name="storage"]').forEach(r => {
+    r.checked = (r.value === settings.storageMode);
+    r.parentElement.classList.toggle('active', r.checked);
+  });
+  updateStorageSections();
+  $('fsaWarning').style.display = fsaSupported() ? 'none' : 'block';
+  $('folderInfo').textContent = folderHandle ? `📂 ${folderHandle.name}` : 'No folder selected.';
+  $('settingsOverlay').classList.remove('hidden');
+}
+function updateStorageSections() {
+  const mode = document.querySelector('[name="storage"]:checked')?.value || settings.storageMode;
+  $('folderSection').style.display = (mode === 'folder') ? 'block' : 'none';
+  $('driveSection').style.display = (mode === 'drive') ? 'block' : 'none';
+}
+function closeSettings() { $('settingsOverlay').classList.add('hidden'); delete settings._tempEditor; }
+
+async function applySettingsFromModal() {
+  if (settings._tempEditor) {
+    if (settings._tempEditor.grades.length > 0) settings.grades = settings._tempEditor.grades;
+    if (settings._tempEditor.subjects.length > 0) settings.subjects = settings._tempEditor.subjects;
+    settings.boards = settings._tempEditor.boards;
+  }
+  settings.username = $('set-username').value.trim();
+  settings.newsTopic = $('set-news-topic').value;
+  settings.newsKeywords = $('set-news-keywords').value.trim();
+  settings.newsRefresh = +$('set-news-refresh').value;
+  const newClientId = $('set-client-id').value.trim();
+  const clientChanged = newClientId !== settings.clientId;
+  settings.clientId = newClientId;
+  const themeRadio = document.querySelector('[name="theme"]:checked');
+  if (themeRadio) settings.theme = themeRadio.value;
+  const storageRadio = document.querySelector('[name="storage"]:checked');
+  const oldMode = settings.storageMode;
+  if (storageRadio) settings.storageMode = storageRadio.value;
+  delete settings._tempEditor;
+  saveSettings();
+
+  applyTheme();
+  updateWelcome();
+  populateFormSelects();
+  renderGradeFilters();
+  renderSubjectFilters();
+  renderFilters();
+  render();
+  $('newsTopicQuick').value = settings.newsTopic;
+  fetchNews();
+  scheduleNewsRefresh();
+  updateAuthUI();
+  if (clientChanged && settings.clientId) initTokenClient();
+
+  // Storage mode change
+  if (settings.storageMode !== oldMode) {
+    if (settings.storageMode === 'local') {
+      setSync('local', 'Local only');
+    } else if (settings.storageMode === 'folder') {
+      if (folderHandle) { await saveToFolder(); }
+      else setSync('local', 'Pick a folder in Settings');
+    } else if (settings.storageMode === 'drive') {
+      if (signedIn) bootstrapDrive();
+      else setSync('local', settings.clientId ? 'Sign in to sync' : 'Add Client ID in Settings');
+    }
+  }
+}
+
+/* ===========================================================================
+   GOOGLE DRIVE SYNC
+   =========================================================================== */
+function setSync(state, text) {
+  const pill = $('syncPill');
+  pill.classList.remove('synced','saving','error','local');
+  pill.classList.add(state);
+  $('syncText').textContent = text;
+}
+function updateAuthUI() {
+  const mode = settings.storageMode;
+  const hasClient = !!settings.clientId;
+  $('btnSignIn').style.display = (mode === 'drive' && hasClient && !signedIn) ? 'inline-block' : 'none';
+  $('btnPull').style.display = (mode === 'drive' && signedIn) ? 'inline-block' : 'none';
+  $('btnPush').style.display = (mode === 'drive' && signedIn) ? 'inline-block' : 'none';
+  $('signOutBtn').style.display = (mode === 'drive' && signedIn) ? 'inline-block' : 'none';
+
+  if (mode === 'folder' && folderHandle) {
+    $('helpText').textContent = `Saving to ${folderHandle.name}/data/dashboard.json. Copy the folder anywhere — data goes with it.`;
+  } else if (mode === 'folder') {
+    $('helpText').textContent = 'Local folder mode — open Settings → Storage to pick a folder.';
+  } else if (mode === 'drive' && signedIn) {
+    $('helpText').textContent = 'Connected to Google Drive. Changes auto-save to the "Teacher Dashboard" folder in Drive.';
+  } else if (mode === 'drive' && hasClient) {
+    $('helpText').textContent = 'Drive mode — click "Sign in to Drive" above.';
+  } else if (mode === 'drive') {
+    $('helpText').textContent = 'Drive mode — paste your OAuth Client ID in Settings → Storage.';
+  } else {
+    $('helpText').textContent = 'Tasks save to your browser. Open Settings → Storage to switch to a local folder or Google Drive.';
+  }
+}
+function initTokenClient() {
+  if (!settings.clientId || !window.google || !google.accounts) return;
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: settings.clientId, scope: SCOPE, prompt: '',
+    callback: (resp) => {
+      if (resp.error) { setSync('error','Auth failed: '+resp.error); return; }
+      accessToken = resp.access_token;
+      tokenExpiry = Date.now() + (resp.expires_in - 60) * 1000;
+      localStorage.setItem(TOKEN_KEY, JSON.stringify({ accessToken, tokenExpiry }));
+      signedIn = true; updateAuthUI();
+      setSync('saving','Connected — loading…');
+      bootstrapDrive();
+    },
+  });
+}
+function ensureToken() {
+  return new Promise((resolve, reject) => {
+    if (accessToken && Date.now() < tokenExpiry) return resolve(accessToken);
+    if (!tokenClient) return reject(new Error('Not configured'));
+    const oldCb = tokenClient.callback;
+    tokenClient.callback = (resp) => {
+      tokenClient.callback = oldCb;
+      if (resp.error) return reject(new Error(resp.error));
+      accessToken = resp.access_token;
+      tokenExpiry = Date.now() + (resp.expires_in - 60)*1000;
+      localStorage.setItem(TOKEN_KEY, JSON.stringify({ accessToken, tokenExpiry }));
+      resolve(accessToken);
+    };
+    tokenClient.requestAccessToken({ prompt: '' });
+  });
+}
+async function driveFetch(url, opts = {}) {
+  const tok = await ensureToken();
+  const headers = { ...(opts.headers||{}), 'Authorization': `Bearer ${tok}` };
+  const res = await fetch(url, { ...opts, headers });
+  if (res.status === 401) {
+    accessToken = null; tokenExpiry = 0;
+    const tok2 = await ensureToken();
+    headers['Authorization'] = `Bearer ${tok2}`;
+    const res2 = await fetch(url, { ...opts, headers });
+    if (!res2.ok) throw new Error(`Drive ${res2.status}`);
+    return res2;
+  }
+  if (!res.ok) throw new Error(`Drive ${res.status}`);
+  return res;
+}
+async function ensureFolder() {
+  const cached = localStorage.getItem(FOLDER_ID_KEY);
+  if (cached) { folderId = cached; return folderId; }
+  const q = encodeURIComponent(`name = '${FOLDER_NAME}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`);
+  const res = await driveFetch(`${DRIVE_API}/files?q=${q}&fields=files(id,name)`);
+  const data = await res.json();
+  if (data.files && data.files.length > 0) folderId = data.files[0].id;
+  else {
+    const cr = await driveFetch(`${DRIVE_API}/files`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name:FOLDER_NAME, mimeType:'application/vnd.google-apps.folder' }) });
+    folderId = (await cr.json()).id;
+  }
+  localStorage.setItem(FOLDER_ID_KEY, folderId);
+  return folderId;
+}
+async function loadLatestFromDrive() {
+  if (!folderId) await ensureFolder();
+  const q = encodeURIComponent(`'${folderId}' in parents and name contains '${FILE_PREFIX}' and mimeType = 'application/json' and trashed = false`);
+  const res = await driveFetch(`${DRIVE_API}/files?q=${q}&fields=files(id,name,createdTime)&orderBy=createdTime desc&pageSize=10`);
+  const data = await res.json();
+  if (!data.files || data.files.length === 0) return null;
+  const latest = data.files[0];
+  const dl = await driveFetch(`${DRIVE_API}/files/${latest.id}?alt=media`);
+  return { state: JSON.parse(await dl.text()), savedAt: latest.createdTime };
+}
+async function saveToDrive() {
+  if (!signedIn) return;
+  setSync('saving','Saving to Drive…');
+  try {
+    if (!folderId) await ensureFolder();
+    const now = new Date().toISOString();
+    const fileName = `${FILE_PREFIX}${now.replace(/[:.]/g,'-')}.json`;
+    const payload = { version: 4, savedAt: now, tasks };
+    const boundary = '-------teacherdash' + Math.random().toString(36).slice(2);
+    const meta = { name: fileName, parents:[folderId], mimeType:'application/json' };
+    const body = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(meta)}\r\n--${boundary}\r\nContent-Type: applicati
