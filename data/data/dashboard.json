@@ -1,0 +1,109 @@
+{
+  "version": 5,
+  "savedAt": "2026-05-12T08:31:59.019Z",
+  "tasks": [
+    {
+      "id": "t_1778573629563_spz9q",
+      "title": "TB-Curriculum review",
+      "desc": "",
+      "grade": "Dept",
+      "subject": "Other",
+      "priority": "High",
+      "due": "2026-05-19",
+      "board": "",
+      "done": false,
+      "created": 1778573629563
+    },
+    {
+      "id": "t_1778573652283_ry23e",
+      "title": "TB-Hardware list review and raise PO",
+      "desc": "",
+      "grade": "Dept",
+      "subject": "Robotics",
+      "priority": "High",
+      "due": "2026-05-14",
+      "board": "",
+      "done": false,
+      "created": 1778573652283
+    },
+    {
+      "id": "t_1778573678595_yiftp",
+      "title": "TB-Certification followup Tesseract",
+      "desc": "",
+      "grade": "Dept",
+      "subject": "Other",
+      "priority": "High",
+      "due": "2026-05-16",
+      "board": "",
+      "done": false,
+      "created": 1778573678595
+    },
+    {
+      "id": "t_1778573699699_iwjxp",
+      "title": "Request PD time for TB certifcation",
+      "desc": "",
+      "grade": "Dept",
+      "subject": "Other",
+      "priority": "High",
+      "due": "2026-05-13",
+      "board": "",
+      "done": false,
+      "created": 1778573699699
+    },
+    {
+      "id": "t_1778573724586_nhaf0",
+      "title": "Robotics plan for After school",
+      "desc": "",
+      "grade": "All Grades",
+      "subject": "Robotics",
+      "priority": "Medium",
+      "due": "2026-05-29",
+      "board": "",
+      "done": false,
+      "created": 1778573724586
+    },
+    {
+      "id": "t_1778573827098_2j1pp",
+      "title": "Robotics IoT project",
+      "desc": "",
+      "grade": "Dept",
+      "subject": "Robotics",
+      "priority": "Low",
+      "due": "2026-05-15",
+      "board": "",
+      "done": false,
+      "created": 1778573827098
+    }
+  ],
+  "settings": {
+    "username": "",
+    "grades": [
+      "Dept",
+      "Grade 7",
+      "Grade 8",
+      "Grade 9",
+      "Grade 10",
+      "Grade 11",
+      "Grade 12",
+      "All Grades"
+    ],
+    "subjects": [
+      "Computer Science",
+      "Robotics",
+      "AI Programming",
+      "Department",
+      "Other"
+    ],
+    "boards": [
+      "IGCSE",
+      "IB MYP",
+      "IB DP"
+    ],
+    "newsTopic": "tech-ai",
+    "newsKeywords": "",
+    "newsRefresh": 900,
+    "theme": "auto",
+    "clientId": "",
+    "storageMode": "folder"
+  }
+}
