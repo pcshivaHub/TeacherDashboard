@@ -1,6 +1,6 @@
 {
   "version": 5,
-  "savedAt": "2026-05-12T08:31:59.019Z",
+  "savedAt": "2026-05-18T04:43:38.891Z",
   "tasks": [
     {
       "id": "t_1778573629563_spz9q",
@@ -23,8 +23,9 @@
       "priority": "High",
       "due": "2026-05-14",
       "board": "",
-      "done": false,
-      "created": 1778573652283
+      "done": true,
+      "created": 1778573652283,
+      "completedAt": "2026-05-18T04:43:38.889Z"
     },
     {
       "id": "t_1778573678595_yiftp",
@@ -35,8 +36,9 @@
       "priority": "High",
       "due": "2026-05-16",
       "board": "",
-      "done": false,
-      "created": 1778573678595
+      "done": true,
+      "created": 1778573678595,
+      "completedAt": "2026-05-18T02:30:26.865Z"
     },
     {
       "id": "t_1778573699699_iwjxp",
@@ -47,8 +49,9 @@
       "priority": "High",
       "due": "2026-05-13",
       "board": "",
-      "done": false,
-      "created": 1778573699699
+      "done": true,
+      "created": 1778573699699,
+      "completedAt": "2026-05-18T02:30:15.736Z"
     },
     {
       "id": "t_1778573724586_nhaf0",
@@ -73,6 +76,18 @@
       "board": "",
       "done": false,
       "created": 1778573827098
+    },
+    {
+      "id": "t_1779079389370_bwkcd",
+      "title": "Prepare QP",
+      "desc": "",
+      "grade": "Grade 11",
+      "subject": "Computer Science",
+      "priority": "High",
+      "due": "2026-05-25",
+      "board": "IB DP",
+      "done": false,
+      "created": 1779079389370
     }
   ],
   "settings": {
