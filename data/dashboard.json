@@ -4,29 +4,10 @@
   "tasks": [],
   "settings": {
     "username": "",
-    "grades": [
-      "Dept",
-      "Grade 7",
-      "Grade 8",
-      "Grade 9",
-      "Grade 10",
-      "Grade 11",
-      "Grade 12",
-      "All Grades"
-    ],
-    "subjects": [
-      "Computer Science",
-      "Robotics",
-      "AI Programming",
-      "Department",
-      "Other"
-    ],
-    "boards": [
-      "IGCSE",
-      "IB MYP",
-      "IB DP"
-    ],
-    "newsTopic": "tech-general",
+    "grades": [],
+    "subjects": [],
+    "boards": [],
+    "newsTopic": "",
     "newsKeywords": "",
     "newsRefresh": 900,
     "theme": "auto",
